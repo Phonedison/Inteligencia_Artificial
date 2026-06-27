@@ -1,24 +1,40 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Sistemas Operacionais e IDEs (Geral)
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+*.swp
+
+# FRONT-END (frontEnd/)
+frontEnd/node_modules/
+frontEnd/dist/
+frontEnd/dist-ssr/
+frontEnd/*.local
+frontEnd/.env
+frontEnd/.env.*.local
+
+# Logs do npm/vite
+frontEnd/npm-debug.log*
+frontEnd/yarn-debug.log*
+frontEnd/yarn-error.log*
+frontEnd/pnpm-debug.log*
+
+# BACK-END (backEnd/chatbot/)
+backEnd/chatbot/target/
+backEnd/chatbot/!.mvn/wrapper/maven-wrapper.jar
+
+# Arquivos de build específicos de IDEs para Java
+backEnd/chatbot/.classpath
+backEnd/chatbot/.project
+backEnd/chatbot/.settings/
+backEnd/chatbot/*.class
+
+# Logs do Spring/Java
+backEnd/chatbot/*.log
+
+# Se você usar arquivos .env ou propriedades locais no back-end futuramente
+backEnd/chatbot/application-local.properties

@@ -2,6 +2,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
 
+import { EnviarPergunta } from "../../utils/Api";
 import MessageInput from "../MessageInput";
 import MessageList from "../MessageList";
 import { Avatar, ChatStatus, Container, Header, Info, Wrapper } from "./styles";
@@ -15,21 +16,18 @@ export const ChatContainer = () => {
       id: 1,
       text: "Olá! Como posso te ajudar hoje?",
       isMe: false,
-      time: "00:00",
-    },
-    {
-      id: 2,
-      text: "Oi! Gostaria de saber mais sobre as animações com GSAP no React.",
-      isMe: true,
-      time: "00:00",
-    },
-    {
-      id: 3,
-      text: "Com certeza! O GSAP é incrível para criar transições fluidas e micro-interações.",
-      isMe: false,
-      time: "00:00",
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     },
   ]);
+
+  const TimeNow = () =>
+    new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
   useGSAP(
     () => {
@@ -42,17 +40,40 @@ export const ChatContainer = () => {
     { scope: containerRef },
   );
 
-  const handleSendMessage = (text) => {
+  const [isResponde, setIsResponde] = useState(false);
+
+  const handleSendMessage = async (text) => {
     const newMessage = {
       id: Date.now(),
       text,
       isMe: true,
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      time: TimeNow(),
     };
     setMessages((prev) => [...prev, newMessage]);
+    setIsResponde(true);
+
+    try {
+      const resultado = await EnviarPergunta(text, "sessao-react-chat");
+
+      const botMessage = {
+        id: Date.now(),
+        text: resultado.resposta,
+        isMe: false,
+        time: TimeNow(),
+      };
+
+      setMessages((e) => [...e, botMessage]);
+    } catch (error) {
+      const errorMessage = {
+        id: Date.now() + 1,
+        text: "Ops, ocorreu um erro ao tentar obter a resposta.",
+        isMe: false,
+        time: TimeNow(),
+      };
+      setMessages((e) => [...e, errorMessage]);
+    } finally {
+      setIsResponde(false);
+    }
   };
 
   return (
