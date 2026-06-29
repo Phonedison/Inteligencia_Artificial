@@ -24,7 +24,7 @@ import org.springframework.web.client.RestTemplate;
 public class ChatController {
 
     // @Value("${app.api.urlN8n}")
-    private final String urlN8n = "http://localhost:5678/webhook-test/perguntar";
+    private final String urlN8n = "http://localhost:5678/webhook/perguntar";
 
     @Autowired
     private ChatRepository chatRepository;
@@ -48,14 +48,20 @@ public class ChatController {
 
         String resposta;
         try {
-            // Envia para o n8n e recebe a string de texto com a resposta da IA
+
             ResponseEntity<Map> responseN8n = restTemplate.postForEntity(urlN8n, entity, Map.class);
 
-            if (responseN8n.getBody() != null && responseN8n.getBody().containsKey("output")) {
-                resposta = responseN8n.getBody().get("output").toString();
+            if (responseN8n != null && responseN8n.getBody() != null) {
+                Map<String, Object> body = responseN8n.getBody();
+                if (body.containsKey("output") && body.get("output") != null) {
+                    resposta = body.get("output").toString();
+                } else {
+                    resposta = body.toString();
+                }
             } else {
-                resposta = responseN8n.getBody().toString();
+                resposta = "O motor de IA (n8n) retornou uma resposta vazia.";
             }
+
         } catch (RestClientException e) {
             resposta = "Erro ao se comunicar com o motor de IA (n8n): " + e.getMessage();
         }

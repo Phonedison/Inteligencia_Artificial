@@ -27,6 +27,13 @@ export const Bubble = styled.div`
     props.$isMe
       ? "0 4px 12px rgba(99, 102, 241, 0.2)"
       : "0 2px 4px rgba(0,0,0,0.02)"};
+
+  & img {
+    max-width: 250px;
+    border-radius: 8px;
+    margin-top: 8px;
+    display: block;
+  }
 `;
 
 export const Time = styled.span`
