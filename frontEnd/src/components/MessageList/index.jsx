@@ -1,5 +1,6 @@
 import gsap from "gsap";
 import { useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 import { Bubble, Messages, Time } from "./styles";
 
 export const MessageList = ({ messages }) => {
@@ -23,7 +24,7 @@ export const MessageList = ({ messages }) => {
     <Messages ref={listRef}>
       {messages.map((msg) => (
         <Bubble key={msg.id} $isMe={msg.isMe}>
-          <p className="message-text">{msg.text}</p>
+          <ReactMarkdown>{msg.text}</ReactMarkdown>
           <Time>{msg.time}</Time>
         </Bubble>
       ))}

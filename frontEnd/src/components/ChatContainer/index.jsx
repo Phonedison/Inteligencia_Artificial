@@ -41,6 +41,8 @@ export const ChatContainer = () => {
   );
 
   const [isResponde, setIsResponde] = useState(false);
+  const [status, setStatus] = useState(false);
+  const [info, setInfo] = useState("offline");
 
   const handleSendMessage = async (text) => {
     const newMessage = {
@@ -82,8 +84,8 @@ export const ChatContainer = () => {
         <Header>
           <Avatar></Avatar>
           <Info>
-            <h3>Chat bulinha</h3>
-            <ChatStatus>Online</ChatStatus>
+            <h3>ChatBot</h3>
+            <ChatStatus online={status}>{info}</ChatStatus>
           </Info>
         </Header>
         <MessageList messages={messages} />
