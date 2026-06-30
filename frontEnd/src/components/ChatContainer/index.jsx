@@ -1,16 +1,19 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { EnviarPergunta } from "../../utils/Api";
-import MessageInput from "../MessageInput";
-import MessageList from "../MessageList";
+import { MessageInput } from "../MessageInput";
+import { MessageList } from "../MessageList";
 import { Avatar, ChatStatus, Container, Header, Info, Wrapper } from "./styles";
 
 gsap.registerPlugin(useGSAP);
 
 export const ChatContainer = () => {
   const containerRef = useRef(null);
+  const [isResponde, setIsResponde] = useState(false);
+  const [status, setStatus] = useState(false);
+  const [info, setInfo] = useState("offline");
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -40,9 +43,19 @@ export const ChatContainer = () => {
     { scope: containerRef },
   );
 
-  const [isResponde, setIsResponde] = useState(false);
-  const [status, setStatus] = useState(false);
-  const [info, setInfo] = useState("offline");
+  useEffect(() => {
+    const verificarConexao = async () => {
+      try {
+        await EnviarPergunta("", "teste-conexao");
+        setStatus(true);
+        setInfo("online");
+      } catch (error) {
+        setStatus(false);
+        setInfo("offline");
+      }
+    };
+    verificarConexao();
+  }, []);
 
   const handleSendMessage = async (text) => {
     const newMessage = {
@@ -53,6 +66,7 @@ export const ChatContainer = () => {
     };
     setMessages((prev) => [...prev, newMessage]);
     setIsResponde(true);
+    setInfo("gerando resposta...");
 
     try {
       const resultado = await EnviarPergunta(text, "sessao-react-chat");
@@ -65,6 +79,8 @@ export const ChatContainer = () => {
       };
 
       setMessages((e) => [...e, botMessage]);
+      setStatus(true);
+      setInfo("online");
     } catch (error) {
       const errorMessage = {
         id: Date.now() + 1,
@@ -73,6 +89,8 @@ export const ChatContainer = () => {
         time: TimeNow(),
       };
       setMessages((e) => [...e, errorMessage]);
+      setStatus(false);
+      setInfo("offline");
     } finally {
       setIsResponde(false);
     }
@@ -88,11 +106,9 @@ export const ChatContainer = () => {
             <ChatStatus online={status}>{info}</ChatStatus>
           </Info>
         </Header>
-        <MessageList messages={messages} />
+        <MessageList messages={messages} loading={isResponde} />
         <MessageInput onSendMessage={handleSendMessage} />
       </Container>
     </Wrapper>
   );
 };
-
-export default ChatContainer;
