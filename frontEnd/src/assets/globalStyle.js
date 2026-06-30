@@ -1,4 +1,4 @@
-import { createGlobalStyle } from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 
 export const GlobalStyled = createGlobalStyle`
   * {
@@ -26,4 +26,23 @@ html{
     text-decoration: none;
     color: inherit;
   }
+`;
+
+export const BackgroundImage = styled.div`
+  min-width: 100vw;
+  min-height: 100vh;
+
+  background-image: url(https://casimirodeabreu.rj.gov.br/wp-content/uploads/2025/09/8-curiosidades-sobre-o-vira-lata-caramelo.jpg);
+
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  opacity: 0.5;
+
+  filter: blur(2px) grayscale(1);
 `;
