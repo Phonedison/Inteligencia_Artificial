@@ -1,0 +1,356 @@
+{
+  "name": "ChatBot_Consolidado_RAG",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.chatInput }}",
+        "options": {
+          "systemMessage": "# SYSTEM PROMPT: DIRETRIZ DE EXECUÇÃO E PRIORIDADE DE FERRAMENTAS\n\nVocê é um assistente virtual especializado de alta precisão. Sua principal missão é responder às dúvidas do usuário utilizando **exclusivamente** as ferramentas (tools) internas que foram disponibilizadas no seu fluxo.\n\nSiga estritamente as diretrizes de busca e restrições abaixo para cada pergunta recebida:\n\n## 1. ORDEM DE PRIORIDADE NA BUSCA (Fluxo Obrigatório)\n*   **PASSO 1 (Prioridade Máxima):** Use a ferramenta principal `buscar_memoria_cachorros` (ou a ferramenta equivalente de banco de dados/pgvector) para buscar o histórico de conversas, documentos e informações internas. Se a resposta ou o contexto necessário estiver presente nestes dados, formule a resposta baseando-se estritamente neles.\n*   **PASSO 2 (Fallback Interno):** Caso a primeira ferramenta não traga dados suficientes, você está autorizado a acionar a ferramenta secundária `HTTP Request` (ou API específica conectada) para complementar o conhecimento com fontes de dados homologadas.\n\n## 2. RESTRIÇÃO CRÍTICA (Proibição de Internet)\n*   **NÃO use ferramentas de busca aberta na internet (Web Search/Google).** Você está terminantemente proibido de realizar buscas diretas na web para responder ao usuário.\n*   Se a informação necessária não for encontrada em nenhuma das ferramentas internas (`buscar_memoria_cachorros` ou `HTTP Request`), admita de forma amigável que não possui essa informação no momento, em vez de inventar dados ou buscar externamente.\n\n## 3. DIRETRIZES DE ESTILO E SAÍDA\n*   **Invisibilidade Técnica:** Nunca mencione termos técnicos para o usuário como \"minhas ferramentas\", \"tools\", \"pgvector\", \"banco de dados\", \"fallback\", \"API\" ou \"retorno de busca\". A lógica de funcionamento deve ser invisível para o usuário final.\n*   **Tom de Voz:** Seja claro, objetivo e amigável.\n*   **Formatação:** Responda de maneira fluida. Caso utilize dados combinados das ferramentas internas, integre-os perfeitamente no texto.\n\nInteraja comunicando, utilizando palavras que lembrem um cachorro, durante a resposta. Exemplo: Atue como o Scooby do desenho Scooby-Doo.\n\nA cada resposta, utilize também uma imagem com base em algum link da internet que represente a resposta para o usuário. Não tente buscar as imagens diretamente das tolls. Busque sempre por algum link público da internet."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        10256,
+        5680
+      ],
+      "id": "0d625605-9720-46d1-8e6d-7afd4cf07e56",
+      "name": "AI Agent",
+      "retryOnFail": false,
+      "executeOnce": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        10288,
+        6368
+      ],
+      "id": "3af396e1-de1e-42aa-b993-8bd1f7453b2e",
+      "name": "Embeddings Google Gemini1",
+      "executeOnce": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YcXBJkR8uo0ILMUR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json['arquivos pdf'] }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        10688,
+        6352
+      ],
+      "id": "06d4077f-699f-4fdd-826e-5d53745ae629",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "/perguntar",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        10016,
+        5680
+      ],
+      "id": "f1680b39-a441-46ee-9d3d-04e743d2de6d",
+      "name": "Webhook",
+      "webhookId": "bd2dc0fa-b103-43c9-b879-b18dbdb69e7a"
+    },
+    {
+      "parameters": {
+        "formTitle": "Enviar Arquivos",
+        "formDescription": "Arquivos",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "arquivos pdf",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        10464,
+        6128
+      ],
+      "id": "f42e20e5-34d6-455c-b647-441868a66928",
+      "name": "formulario",
+      "webhookId": "cdbe8301-155d-4ea8-a7ca-d44ffdf872d5"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": "chatbot_vector",
+        "embeddingBatchSize": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        10640,
+        6128
+      ],
+      "id": "04dbf1f9-4229-41e5-b429-bae95d282e55",
+      "name": "PostgreVector-1",
+      "credentials": {
+        "postgres": {
+          "id": "ehzDVIyVUdXaYiB8",
+          "name": "DbChatBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Instrução para geração de query:\nAo utilizar a ferramenta 'buscar_memoria_cachorros', extraia as palavras-chave e a intenção semântica da pergunta do usuário. Remova saudações e foque no assunto sobre cachorros.\n\nExemplo de entrada do usuário: \"Você lembra qual era a raça do pet que eu comentei ontem?\"\n\nExemplo de query gerada para a Tool: \"raça do cachorro do usuário pet comentado ontem\"",
+        "tableName": "chatbox_memory_vector",
+        "topK": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        10320,
+        5872
+      ],
+      "id": "00ece23c-fcae-47dd-858f-1bc2c90d5ff3",
+      "name": "buscar_memoria_cachorros",
+      "credentials": {
+        "postgres": {
+          "id": "ehzDVIyVUdXaYiB8",
+          "name": "DbChatBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"output\": $json.output } }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        10608,
+        5664
+      ],
+      "id": "c0133fbc-926d-4e45-86bc-135e25c12669",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        10176,
+        5872
+      ],
+      "id": "547848c5-7cdf-4aaf-8ee1-a1f6f180e8cc",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YcXBJkR8uo0ILMUR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Utilize esta ferramenta SEMPRE que o usuário solicitar informações detalhadas, dados técnicos ou curiosidades sobre uma raça específica de cachorro que não foram encontrados na memória interna. Esta ferramenta consulta uma base de dados oficial de cães.\n\nINSTRUÇÕES DE USO PARA O PARÂMETRO 'query':\n1. O parâmetro 'query' aceita apenas termos em INGLÊS. Traduza o nome da raça solicitado pelo usuário antes de enviar (Exemplos de tradução: 'Pastor Alemão' para 'German Shepherd', 'Golden Retriever' para 'gold', 'Vira-lata' ou 'Mestiço' para 'Mixed').\n2. Se o usuário fornecer apenas parte do nome, envie essa parte (ex: 'Bulldog' ou 'Retriever').\n\nDADOS RETORNADOS PELA FERRAMENTA:\nA ferramenta retorna uma lista em JSON contendo:\n- 'name': Nome oficial da raça.\n- 'temperament': Lista de adjetivos comportamentais da raça em inglês (traduza amigavelmente para o português na sua resposta final).\n- 'life_span': Expectativa de vida.\n- 'weight' e 'height': Peso e altura nos sistemas métrico e imperial.\n- 'bred_for': Propósito original da criação da raça.\n\nUse os dados brutos retornados para formular uma resposta natural, carismática e totalmente em português para o usuário.",
+        "url": "=https://api.thedogapi.com/v1/breeds/search?q={{ $json.query }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        10608,
+        5872
+      ],
+      "id": "42992693-25f8-4725-9d0f-b748c62bc1b6",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "lQGnfFG54JZxykO8",
+          "name": "theDogAuthentication"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Aqui passa os dados com base nos pdf",
+        "height": 192,
+        "width": 560,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        10400,
+        6080
+      ],
+      "typeVersion": 1,
+      "id": "453d4737-db40-4516-9b08-c7862ab2b340",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Aqui faz a interação com o chat",
+        "height": 368,
+        "width": 912,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        9936,
+        5632
+      ],
+      "typeVersion": 1,
+      "id": "b83a8f21-1270-4f3e-9ae0-6fe6cb1fc251",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "PostgreVector-1",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "buscar_memoria_cachorros",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "PostgreVector-1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "formulario": {
+      "main": [
+        [
+          {
+            "node": "PostgreVector-1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_memoria_cachorros": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "America/Sao_Paulo",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "f28c161e-7719-4f13-aadd-fc55a2bb7268",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cdd17ed37db7da054c86bc076c66e9c6ad0637d54cab1df95a03f3e4dca90bce"
+  },
+  "nodeGroups": [],
+  "id": "bHvCjmUvtuYyPAIU",
+  "tags": []
+}
