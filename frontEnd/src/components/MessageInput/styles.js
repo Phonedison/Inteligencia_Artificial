@@ -2,19 +2,19 @@ import styled from "styled-components";
 
 export const Form = styled.form`
   display: flex;
-  padding: 16px;
+  padding: 2.4rem;
   background: #ffffff;
-  border-top: 1px solid #eaeaea;
-  gap: 12px;
+  border-top: 0.1rem solid #eaeaea;
+  gap: 0.8rem;
   align-items: center;
 `;
 
 export const Input = styled.input`
   flex: 1;
-  border: 1px solid #e2e8f0;
-  padding: 12px 16px;
-  border-radius: 14px;
-  font-size: 14px;
+  border: 0.1rem solid #e2e8f0;
+  padding: 1.6rem;
+  border-radius: 1.6rem;
+  font-size: 1.33rem;
   outline: none;
   transition: border-color 0.2s;
 
@@ -27,9 +27,9 @@ export const Button = styled.button`
   background: #6366f1;
   color: white;
   border: none;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 4.8rem;
+  height: 4.8rem;
+  border-radius: 1.6rem;
   display: flex;
   justify-content: center;
   align-items: center;
