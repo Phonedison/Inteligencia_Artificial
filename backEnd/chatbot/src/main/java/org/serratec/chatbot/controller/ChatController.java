@@ -20,7 +20,7 @@ import java.util.Map;
 public class ChatController {
 
     // @Value("${app.api.urlN8n}")
-    private final String urlN8n = "http://localhost:5678/webhook/perguntar";
+    private final String urlN8n = "http://localhost:5678/webhook-test/perguntar";
 
     @Autowired
     private ChatRepository chatRepository;
